@@ -14,7 +14,7 @@ NOTE: use `-s llvm_tools:build_type=Release` during `conan install`
 ```bash
 conan remote add conan-center https://api.bintray.com/conan/conan/conan-center False
 
-export PKG_NAME=fmt/7.1.3@dev/stable
+export PKG_NAME=fmt/master@dev/stable
 
 (CONAN_REVISIONS_ENABLED=1 \
     conan remove --force $PKG_NAME || true)

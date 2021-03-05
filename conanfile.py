@@ -26,7 +26,8 @@ conan_build_helper = python_requires("conan_build_helper/[~=0.0]@conan/stable")
 
 class FmtConan(conan_build_helper.CMakePackage):
     name = "fmt"
-    version = "7.1.3"
+    version = "master"
+    commit = "d8b92543017053a2b2c5ca901ea310e20690b137"
     homepage = "https://github.com/fmtlib/fmt"
     repo_url = 'https://github.com/fmtlib/fmt'
     description = "A safe and fast alternative to printf and IOStreams."
@@ -110,7 +111,10 @@ class FmtConan(conan_build_helper.CMakePackage):
         #tools.get(**self.conan_data["sources"][self.version])
         #extracted_dir = self.name + "-" + self.version
         #os.rename(extracted_dir, self._source_subfolder)
-        self.run('git clone --progress --branch {} --recursive --recurse-submodules {} {}'.format(self.version, self.repo_url, self._source_subfolder))
+        self.run('git clone --progress --branch {} --single-branch --recursive --recurse-submodules {} {}'.format(self.version, self.repo_url, self._source_subfolder))
+        if self.commit:
+            with tools.chdir(self._source_subfolder):
+                self.run('git checkout {}'.format(self.commit))
 
     def _configure_cmake(self):
         if self._cmake:
