@@ -24,9 +24,19 @@ from distutils.util import strtobool
 
 conan_build_helper = python_requires("conan_build_helper/[~=0.0]@conan/stable")
 
+# Users locally they get the 1.0.0 version,
+# without defining any env-var at all,
+# and CI servers will append the build number.
+# USAGE
+# version = get_version("1.0.0")
+# BUILD_NUMBER=-pre1+build2 conan export-pkg . my_channel/release
+def get_version(version):
+    bn = os.getenv("BUILD_NUMBER")
+    return (version + bn) if bn else version
+
 class FmtConan(conan_build_helper.CMakePackage):
     name = "fmt"
-    version = "master"
+    version = get_version("master")
     commit = "d8b92543017053a2b2c5ca901ea310e20690b137"
     homepage = "https://github.com/fmtlib/fmt"
     repo_url = 'https://github.com/fmtlib/fmt'
