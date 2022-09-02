@@ -24,19 +24,9 @@ from distutils.util import strtobool
 
 conan_build_helper = python_requires("conan_build_helper/[~=0.0]@conan/stable")
 
-# Users locally they get the 1.0.0 version,
-# without defining any env-var at all,
-# and CI servers will append the build number.
-# USAGE
-# version = get_version("1.0.0")
-# BUILD_NUMBER=-pre1+build2 conan export-pkg . my_channel/release
-def get_version(version):
-    bn = os.getenv("BUILD_NUMBER")
-    return (version + bn) if bn else version
-
 class FmtConan(conan_build_helper.CMakePackage):
     name = "fmt"
-    version = get_version("master")
+    version = "master"
     commit = "d8b92543017053a2b2c5ca901ea310e20690b137"
     homepage = "https://github.com/fmtlib/fmt"
     repo_url = 'https://github.com/fmtlib/fmt'
@@ -172,22 +162,24 @@ class FmtConan(conan_build_helper.CMakePackage):
           self.build_requires("llvm_tools/master@conan/stable")
 
     def build(self):
-        for patch in self.conan_data.get("patches", {}).get(self.version, []):
-            tools.patch(**patch)
-        if not self.options.header_only:
-            cmake = self._configure_cmake()
-            cmake.build()
+        with tools.vcvars(self.settings, only_diff=False): # https://github.com/conan-io/conan/issues/6577
+            for patch in self.conan_data.get("patches", {}).get(self.version, []):
+                tools.patch(**patch)
+            if not self.options.header_only:
+                cmake = self._configure_cmake()
+                cmake.build()
 
     def package(self):
-        self.copy("LICENSE.rst", dst="licenses", src=self._source_subfolder)
-        if self.options.header_only:
-            self.copy("*.h", dst="include", src=os.path.join(self._source_subfolder, "include"))
-        else:
-            cmake = self._configure_cmake()
-            cmake.install()
-            tools.rmdir(os.path.join(self.package_folder, "lib", "cmake"))
-            tools.rmdir(os.path.join(self.package_folder, "lib", "pkgconfig"))
-            tools.rmdir(os.path.join(self.package_folder, "share"))
+        with tools.vcvars(self.settings, only_diff=False): # https://github.com/conan-io/conan/issues/6577
+            self.copy("LICENSE.rst", dst="licenses", src=self._source_subfolder)
+            if self.options.header_only:
+                self.copy("*.h", dst="include", src=os.path.join(self._source_subfolder, "include"))
+            else:
+                cmake = self._configure_cmake()
+                cmake.install()
+                tools.rmdir(os.path.join(self.package_folder, "lib", "cmake"))
+                tools.rmdir(os.path.join(self.package_folder, "lib", "pkgconfig"))
+                tools.rmdir(os.path.join(self.package_folder, "share"))
 
     def package_id(self):
         if self.options.header_only:
